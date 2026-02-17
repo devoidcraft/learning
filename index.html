@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Web Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Reader Mode Typography */
+        .reader-content {
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            color: #1a1a1a;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .reader-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: block;
+        }
+        .reader-content h1, .reader-content h2, .reader-content h3 {
+            font-family: 'Helvetica Neue', sans-serif;
+            font-weight: 700;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        .reader-content a {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+        .reader-content p {
+            margin-bottom: 1.5em;
+            font-size: 1.125rem;
+        }
+        .reader-content blockquote {
+            border-left: 4px solid #e5e7eb;
+            padding-left: 1rem;
+            font-style: italic;
+            color: #4b5563;
+        }
+        
+        /* Loader */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white shadow-sm z-10 p-4 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center justify-between">
+            
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <h1 class="text-xl font-bold text-gray-800">Clean Reader</h1>
+            </div>
+
+            <div class="flex-1 w-full md:max-w-3xl flex gap-2">
+                <div class="relative flex-1">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="link" class="w-4 h-4 text-gray-400"></i>
+                    </div>
+                    <input type="text" id="urlInput" placeholder="Enter website URL (e.g., https://example.com)" 
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        onkeypress="handleEnter(event)">
+                </div>
+                
+                <button onclick="loadContent('reader')" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Reader Mode (No Ads)</span>
+                </button>
+                
+                <button onclick="loadContent('direct')" class="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                    <i data-lucide="globe" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Live View</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 relative overflow-hidden bg-gray-50">
+        
+        <!-- Welcome State -->
+        <div id="welcomeState" class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-0">
+            <div class="bg-white p-8 rounded-2xl shadow-lg max-w-lg w-full">
+                <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="search" class="w-8 h-8 text-blue-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-3">Ready to Browse?</h2>
+                <p class="text-gray-600 mb-6">
+                    Enter a URL above to start. 
+                </p>
+                <div class="text-left bg-gray-50 p-4 rounded-lg text-sm text-gray-600 border border-gray-100">
+                    <p class="font-semibold mb-2 flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4"></i> Modes Explained:
+                    </p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs font-bold mt-0.5">READER</span>
+                            <span>Fetches text & images only. Removes ads, popups, and scripts. Best for reading articles.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded text-xs font-bold mt-0.5">LIVE</span>
+                            <span>Loads the actual website in a frame. Ads may appear. Some sites (like Google) block this mode.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loaderState" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
+            <div class="loader mb-4"></div>
+            <p class="text-gray-600 font-medium">Fetching content...</p>
+        </div>
+
+        <!-- Reader Mode Container -->
+        <div id="readerContainer" class="hidden absolute inset-0 overflow-y-auto bg-white z-10">
+            <div class="max-w-4xl mx-auto p-8 md:p-12">
+                <div id="readerContent" class="reader-content">
+                    <!-- Cleaned content goes here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Direct Iframe Container -->
+        <div id="iframeContainer" class="hidden absolute inset-0 z-10 w-full h-full">
+            <iframe id="webFrame" class="w-full h-full border-0" sandbox="allow-forms allow-scripts allow-same-origin allow-popups"></iframe>
+            
+            <!-- Overlay for blocked sites -->
+            <div id="iframeError" class="hidden absolute inset-0 bg-gray-100 flex items-center justify-center">
+                <div class="bg-white p-6 rounded-lg shadow-lg text-center max-w-md mx-4">
+                    <i data-lucide="shield-alert" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Content Blocked by Source</h3>
+                    <p class="text-gray-600 mb-4 text-sm">
+                        This website (e.g., Google, YouTube) does not allow itself to be displayed inside another webpage. This is a security feature of the website itself.
+                    </p>
+                    <button onclick="loadContent('reader')" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        Try Reader Mode Instead
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Constants
+        const PROXY_URL = 'https://api.allorigins.win/get?url=';
+        
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                loadContent('reader');
+            }
+        }
+
+        async function loadContent(mode) {
+            let url = document.getElementById('urlInput').value.trim();
+            
+            if (!url) {
+                alert('Please enter a valid URL');
+                return;
+            }
+
+            // Add https if missing
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+                document.getElementById('urlInput').value = url;
+            }
+
+            // UI Reset
+            document.getElementById('welcomeState').classList.add('hidden');
+            document.getElementById('iframeContainer').classList.add('hidden');
+            document.getElementById('readerContainer').classList.add('hidden');
+            document.getElementById('loaderState').classList.remove('hidden');
+            document.getElementById('iframeError').classList.add('hidden');
+
+            if (mode === 'direct') {
+                loadDirect(url);
+            } else {
+                await loadReader(url);
+            }
+        }
+
+        function loadDirect(url) {
+            const container = document.getElementById('iframeContainer');
+            const frame = document.getElementById('webFrame');
+            const loader = document.getElementById('loaderState');
+            
+            container.classList.remove('hidden');
+            
+            // Attempt to load
+            frame.src = url;
+
+            // Simple timeout to hide loader (iframe onload is unreliable for cross-origin)
+            setTimeout(() => {
+                loader.classList.add('hidden');
+            }, 1500);
+
+            // Note: We cannot detect X-Frame-Options errors via JS due to security.
+            // We rely on the user seeing the "Refused to connect" browser error in the frame.
+        }
+
+        async function loadReader(url) {
+            const container = document.getElementById('readerContainer');
+            const contentDiv = document.getElementById('readerContent');
+            const loader = document.getElementById('loaderState');
+
+            try {
+                // Fetch via AllOrigins proxy to bypass CORS
+                const response = await fetch(PROXY_URL + encodeURIComponent(url));
+                const data = await response.json();
+
+                if (!data.contents) {
+                    throw new Error('No content received');
+                }
+
+                // Parse the HTML string into a virtual DOM
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents, 'text/html');
+
+                // --- CLEANING PROCESS (The "Ad Blocker") ---
+
+                // 1. Remove Scripts (Security & Ad scripts)
+                const scripts = doc.querySelectorAll('script, noscript');
+                scripts.forEach(el => el.remove());
+
+                // 2. Remove Iframes (Usually ads or embeds)
+                const iframes = doc.querySelectorAll('iframe');
+                iframes.forEach(el => el.remove());
+
+                // 3. Remove Styles (To enforce our clean reader view)
+                const styles = doc.querySelectorAll('style, link[rel="stylesheet"]');
+                styles.forEach(el => el.remove());
+
+                // 4. Remove common Ad containers based on class/id names
+                const adSelectors = [
+                    '.ad', '#ad', '.ads', '.advertisement', '.banner', 
+                    '[id*="google_ads"]', '[class*="google_ads"]', 
+                    '.popup', '.modal', '.cookie-consent',
+                    'header', 'footer', 'nav', '.sidebar' // Aggressive cleaning for reader mode
+                ];
+                
+                // Try to preserve main content if possible, otherwise clean generally
+                // We'll just remove known ad patterns
+                adSelectors.forEach(selector => {
+                    try {
+                        const ads = doc.querySelectorAll(selector);
+                        ads.forEach(el => el.remove());
+                    } catch (e) { /* Ignore invalid selectors */ }
+                });
+
+                // 5. Fix Relative URLs
+                // We need to turn <img src="/cat.jpg"> into <img src="https://site.com/cat.jpg">
+                const urlObj = new URL(url);
+                const baseUrl = urlObj.origin;
+
+                const images = doc.querySelectorAll('img');
+                images.forEach(img => {
+                    const src = img.getAttribute('src');
+                    if (src && src.startsWith('/')) {
+                        img.src = baseUrl + src;
+                    }
+                    // Remove tracking pixels
+                    if (img.width === 1 || img.height === 1) {
+                        img.remove();
+                    }
+                });
+
+                const links = doc.querySelectorAll('a');
+                links.forEach(a => {
+                    const href = a.getAttribute('href');
+                    if (href && href.startsWith('/')) {
+                        a.href = baseUrl + href;
+                    }
+                    // Make links open in new tab
+                    a.target = "_blank";
+                });
+
+                // 6. Extract the "Meat" of the page
+                // We try to find the <article> or <main> tag. If not, use <body>
+                let mainContent = doc.querySelector('article') || doc.querySelector('main') || doc.body;
+                
+                if (mainContent) {
+                    contentDiv.innerHTML = `
+                        <div class="mb-8 border-b pb-4">
+                            <h1 class="text-3xl font-bold mb-2 text-gray-900">Reader View</h1>
+                            <a href="${url}" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1">
+                                <i data-lucide="external-link" class="w-4 h-4"></i> Original Source
+                            </a>
+                        </div>
+                        ${mainContent.innerHTML}
+                    `;
+                } else {
+                    contentDiv.innerHTML = '<p class="text-red-500">Could not identify main content.</p>';
+                }
+
+                container.classList.remove('hidden');
+                lucide.createIcons(); // Re-init icons if any were injected
+
+            } catch (error) {
+                console.error(error);
+                contentDiv.innerHTML = `
+                    <div class="text-center p-8">
+                        <i data-lucide="wifi-off" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
+                        <h3 class="text-xl font-bold text-gray-800">Failed to load</h3>
+                        <p class="text-gray-600 mt-2">Could not fetch or parse the website. It might be blocking proxy requests.</p>
+                        <p class="text-xs text-gray-400 mt-4">${error.message}</p>
+                    </div>
+                `;
+                container.classList.remove('hidden');
+                lucide.createIcons();
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

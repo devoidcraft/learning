@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Master | Interactive Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;700&display=swap');
+
+        :root {
+            --bg: #0b0f1a;
+            --card: #161b2c;
+            --accent: #3b82f6;
+            --terminal: #050505;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: rgba(22, 27, 44, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.25rem;
+        }
+
+        .terminal-container {
+            background: var(--terminal);
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .cmd-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+        }
+
+        .cmd-card:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-left-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .cmd-card.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left-color: var(--accent);
+        }
+
+        .hidden { display: none; }
+
+        @keyframes blink { 50% { opacity: 0; } }
+        .cursor { display: inline-block; width: 8px; height: 18px; background: #10b981; animation: blink 1s infinite; vertical-align: middle; }
+    </style>
+</head>
+<body class="p-4 lg:p-10">
+
+    <div class="max-w-7xl mx-auto">
+        <nav class="flex justify-between items-center mb-10">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <i class="fas fa-terminal text-white text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight">Linux<span class="text-blue-500">Master</span>.io</h1>
+            </div>
+            <div class="flex space-x-4">
+                <button onclick="showSection('menu')" class="px-4 py-2 hover:text-blue-400 transition">Dashboard</button>
+                <button onclick="showSection('learn')" class="px-4 py-2 hover:text-blue-400 transition text-slate-400">Labs</button>
+            </div>
+        </nav>
+
+        <div id="main-menu" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass p-8 relative overflow-hidden group">
+                <div class="relative z-10">
+                    <h3 class="text-blue-400 font-bold mb-2">01. INTERACTIVE LABS</h3>
+                    <h2 class="text-3xl font-bold mb-4">Visual Learning</h2>
+                    <p class="text-slate-400 mb-6">See commands in action with live visual demos and syntax breakdowns.</p>
+                    <button onclick="showSection('learn')" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-full font-bold transition">Start Learning</button>
+                </div>
+                <i class="fas fa-microchip absolute -bottom-4 -right-4 text-8xl text-blue-500/10 group-hover:scale-110 transition duration-500"></i>
+            </div>
+
+            <div class="glass p-8 relative overflow-hidden group">
+                <div class="relative z-10">
+                    <h3 class="text-emerald-400 font-bold mb-2">02. SANDBOX</h3>
+                    <h2 class="text-3xl font-bold mb-4">Safe Playground</h2>
+                    <p class="text-slate-400 mb-6">A fully simulated Ubuntu environment to practice your new skills.</p>
+                    <button onclick="showSection('shell')" class="bg-emerald-600 hover:bg-emerald-700 px-6 py-2 rounded-full font-bold transition">Open Terminal</button>
+                </div>
+                <i class="fas fa-user-shield absolute -bottom-4 -right-4 text-8xl text-emerald-500/10 group-hover:scale-110 transition duration-500"></i>
+            </div>
+
+            <div class="glass p-8 relative overflow-hidden group">
+                <div class="relative z-10">
+                    <h3 class="text-purple-400 font-bold mb-2">03. CHALLENGES</h3>
+                    <h2 class="text-3xl font-bold mb-4">Skill Quiz</h2>
+                    <p class="text-slate-400 mb-6">Think you're a pro? Pass the proficiency test to earn your "Root" badge.</p>
+                    <button onclick="startQuiz()" class="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-full font-bold transition">Take Quiz</button>
+                </div>
+                <i class="fas fa-trophy absolute -bottom-4 -right-4 text-8xl text-purple-500/10 group-hover:scale-110 transition duration-500"></i>
+            </div>
+        </div>
+
+        <section id="learn-section" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-4 space-y-3 max-h-[70vh] overflow-y-auto pr-2" id="learn-sidebar">
+                    </div>
+
+                <div class="lg:col-span-8 space-y-6">
+                    <div id="demo-content" class="glass p-8 min-h-[300px] flex flex-col justify-center">
+                        <h2 id="learn-title" class="text-4xl font-bold text-blue-400 mb-2">Select a Command</h2>
+                        <p id="learn-desc" class="text-slate-400 text-lg mb-6">Click on any command on the left to see how it's used in the real world.</p>
+                        
+                        <div class="grid grid-cols-2 gap-4" id="learn-meta">
+                            <div class="bg-slate-800/50 p-4 rounded-lg">
+                                <span class="text-xs text-slate-500 uppercase font-bold">Common Use Case</span>
+                                <p id="learn-use" class="text-sm italic text-slate-200">-</p>
+                            </div>
+                            <div class="bg-slate-800/50 p-4 rounded-lg">
+                                <span class="text-xs text-slate-500 uppercase font-bold">Syntax</span>
+                                <code id="learn-syntax" class="text-sm text-emerald-400 block">-</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="terminal-container overflow-hidden">
+                        <div class="bg-slate-800 px-4 py-2 flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-tighter">Live Demo Console</span>
+                            <div class="flex space-x-1">
+                                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                                <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+                                <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                            </div>
+                        </div>
+                        <div id="demo-terminal" class="p-6 h-48 text-emerald-400 terminal-font text-sm leading-relaxed">
+                            <div class="opacity-50 italic">// Click a command to run simulation...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="shell-section" class="hidden glass overflow-hidden h-[600px] flex flex-col">
+            <div class="bg-slate-800/50 p-4 flex justify-between border-b border-white/5">
+                <span class="font-bold text-sm"><i class="fas fa-terminal mr-2"></i> root@master-machine:~</span>
+                <span class="text-xs text-slate-500 italic">Try: 'pip install' or 'nano'</span>
+            </div>
+            <div id="term-body" class="p-6 overflow-y-auto flex-grow terminal-font text-sm"></div>
+            <div class="p-4 bg-black/40 flex items-center border-t border-white/5">
+                <span class="text-emerald-500 mr-2 font-bold terminal-font">$</span>
+                <input type="text" id="term-input" class="bg-transparent border-none outline-none flex-grow terminal-font" autofocus autocomplete="off">
+            </div>
+        </section>
+
+        <section id="quiz-section" class="hidden glass p-10 max-w-2xl mx-auto text-center">
+            <div id="quiz-ui">
+                <h2 id="q-text" class="text-3xl font-bold mb-8">Ready to test your knowledge?</h2>
+                <div id="q-feedback" class="mb-4 h-6 font-bold"></div>
+                <input type="text" id="q-input" class="w-full p-4 bg-slate-900 rounded-xl border-2 border-slate-700 outline-none focus:border-purple-500 mb-6 terminal-font text-center text-xl">
+                <button onclick="checkQuizAnswer()" class="w-full bg-purple-600 p-4 rounded-xl font-bold text-lg hover:bg-purple-700 transition">Submit Answer</button>
+            </div>
+            <div id="quiz-end" class="hidden">
+                <h2 class="text-4xl font-bold mb-4">Session Over!</h2>
+                <p id="quiz-final" class="text-xl mb-8"></p>
+                <button onclick="showSection('menu')" class="bg-slate-700 px-8 py-3 rounded-xl font-bold">Back to Menu</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const COMMANDS_DB = {
+            "ls": {
+                desc: "List Information. It's like opening a folder in Windows to see what's inside.",
+                use: "Checking if a file exists in the current directory.",
+                syntax: "ls [options] [directory]",
+                demo: ["ls", "Documents  Downloads  Photos  script.py"]
+            },
+            "mkdir": {
+                desc: "Make Directory. Creates a brand new, empty folder.",
+                use: "Setting up a new project folder named 'WebProject'.",
+                syntax: "mkdir <folder_name>",
+                demo: ["mkdir WebProject", "ls", "Documents  Downloads  Photos  script.py  <span class='text-blue-400 font-bold'>WebProject</span>"]
+            },
+            "pip": {
+                desc: "Python Package Installer. The way Python users share libraries.",
+                use: "Installing the 'numpy' library for data science.",
+                syntax: "pip install <package_name>",
+                demo: ["pip install numpy", "Collecting numpy...", "[■■■■■■■■■■■■■] 100%", "Successfully installed numpy-1.24"]
+            },
+            "nano": {
+                desc: "Terminal Text Editor. Edit files without leaving the command line.",
+                use: "Writing code directly inside the terminal.",
+                syntax: "nano <file_name>",
+                demo: ["nano hello.py", "[ Opening NANO Editor... ]", "[ File Saved ]"]
+            },
+            "rm": {
+                desc: "Remove. Permanently deletes files or folders.",
+                use: "Cleaning up old log files or temporary scripts.",
+                syntax: "rm <file_name>",
+                demo: ["ls", "data.txt  notes.txt", "rm data.txt", "ls", "notes.txt"]
+            },
+            "cat": {
+                desc: "Concatenate. Quickly peek inside a file to see its text.",
+                use: "Reading a 'readme.txt' file without opening an editor.",
+                syntax: "cat <file_name>",
+                demo: ["cat greeting.txt", "Hello, welcome to the Linux Lab!"]
+            }
+        };
+
+        // UI State
+        function showSection(id) {
+            const ids = ['main-menu', 'learn-section', 'shell-section', 'quiz-section'];
+            ids.forEach(x => document.getElementById(x).classList.add('hidden'));
+            document.getElementById(id + '-section' || id).classList.remove('hidden');
+            if(id === 'learn') initLearn();
+            if(id === 'shell') document.getElementById('term-input').focus();
+        }
+
+        // LEARNING ENGINE
+        function initLearn() {
+            const sidebar = document.getElementById('learn-sidebar');
+            sidebar.innerHTML = '';
+            Object.keys(COMMANDS_DB).forEach(key => {
+                const div = document.createElement('div');
+                div.className = "cmd-card glass p-4";
+                div.innerHTML = `<h4 class="font-bold text-blue-400 terminal-font">${key}</h4><p class="text-xs text-slate-500">${COMMANDS_DB[key].desc.substring(0, 40)}...</p>`;
+                div.onclick = () => runDemo(key, div);
+                sidebar.appendChild(div);
+            });
+        }
+
+        async function runDemo(key, element) {
+            // UI Updates
+            document.querySelectorAll('.cmd-card').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            
+            const cmd = COMMANDS_DB[key];
+            document.getElementById('learn-title').innerText = key;
+            document.getElementById('learn-desc').innerText = cmd.desc;
+            document.getElementById('learn-use').innerText = cmd.use;
+            document.getElementById('learn-syntax').innerText = cmd.syntax;
+
+            // Terminal Animation
+            const term = document.getElementById('demo-terminal');
+            term.innerHTML = '';
+            
+            for(let line of cmd.demo) {
+                if(!line.includes('<')) { // If it's a command being typed
+                    let prompt = `<span class="text-blue-500">user@demo:~$</span> `;
+                    let pTag = document.createElement('p');
+                    pTag.innerHTML = prompt;
+                    term.appendChild(pTag);
+                    
+                    for(let char of line) {
+                        pTag.innerHTML += char;
+                        await new Promise(r => setTimeout(r, 40));
+                    }
+                    await new Promise(r => setTimeout(r, 400));
+                } else { // Output
+                    let pTag = document.createElement('p');
+                    pTag.className = "text-slate-400 mb-2";
+                    pTag.innerHTML = line;
+                    term.appendChild(pTag);
+                }
+            }
+        }
+
+        // SANDBOX LOGIC (Condensed for brevity, similar to previous version)
+        const termInput = document.getElementById('term-input');
+        const termBody = document.getElementById('term-body');
+        let fs = ["home", "docs", "notes.txt"];
+
+        termInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                const val = termInput.value.trim();
+                if(!val) return;
+                
+                const p = document.createElement('p');
+                p.innerHTML = `<span class="text-emerald-500">$</span> ${val}`;
+                termBody.appendChild(p);
+
+                // Simple logic
+                const cmd = val.split(' ')[0];
+                const res = document.createElement('p');
+                res.className = "text-slate-400 mb-2";
+
+                if(cmd === 'ls') res.innerHTML = fs.join('  ');
+                else if(cmd === 'clear') termBody.innerHTML = '';
+                else if(cmd === 'pip') res.innerHTML = "Requirement already satisfied: numpy in ./env/lib/python3.10";
+                else if(cmd === 'help') res.innerHTML = "Available: ls, mkdir, touch, rm, cat, pip, nano, clear";
+                else res.innerHTML = `-bash: ${cmd}: command not found`;
+
+                termBody.appendChild(res);
+                termInput.value = '';
+                termBody.scrollTop = termBody.scrollHeight;
+            }
+        });
+
+        // QUIZ LOGIC
+        let qIndex = 0;
+        let qScore = 0;
+        let qPool = [];
+
+        function startQuiz() {
+            showSection('quiz');
+            qIndex = 0; qScore = 0;
+            qPool = Object.keys(COMMANDS_DB).sort(() => 0.5 - Math.random()).slice(0, 5);
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if(qIndex < qPool.length) {
+                const key = qPool[qIndex];
+                document.getElementById('q-text').innerText = `What command is used for: ${COMMANDS_DB[key].desc}`;
+                document.getElementById('q-input').value = '';
+                document.getElementById('q-feedback').innerText = '';
+            } else {
+                document.getElementById('quiz-ui').classList.add('hidden');
+                document.getElementById('quiz-end').classList.remove('hidden');
+                document.getElementById('quiz-final').innerText = `You mastered ${qScore}/5 commands!`;
+            }
+        }
+
+        function checkQuizAnswer() {
+            const ans = document.getElementById('q-input').value.trim().toLowerCase();
+            if(ans === qPool[qIndex]) {
+                qScore++;
+                document.getElementById('q-feedback').className = "mb-4 h-6 font-bold text-emerald-400";
+                document.getElementById('q-feedback').innerText = "Correct! 🚀";
+            } else {
+                document.getElementById('q-feedback').className = "mb-4 h-6 font-bold text-red-400";
+                document.getElementById('q-feedback').innerText = `Wrong! It was: ${qPool[qIndex]}`;
+            }
+            qIndex++;
+            setTimeout(nextQuestion, 1500);
+        }
+    </script>
+</body>
+</html>
