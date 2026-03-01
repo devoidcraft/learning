@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+        rock paper sessor
+    </title>
+</head>
+
+<body>
+    <p> rock paper scessor</p>
+
+    <button onclick="
+    const randomnum = Math.random();
+    let score = rock(game(randomnum));
+    alert(game(randomnum) + ' ' + score);
+    ">rock</button>
+
+    <button onclick="
+    const randomnm = Math.random();
+    let score = paper(game(randomnm));
+    alert(game(randomnm) + ' ' + score);
+    ">paper</button>
+
+    <button onclick="
+    const randmnm = Math.random();
+    let score = scessor(game(randmnm));
+    alert(game(randmnm) + ' ' + score);
+    ">scessor</button>
+
+    <script>
+        function game(randomnum) {
+            let answer = '';
+            if (randomnum >= 0 && randomnum <= 0.3) {
+                answer = 'rock'
+            }
+            else if (randomnum > 0.3 && randomnum <= 0.6) {
+                answer = 'paper'
+            }
+            else {
+                answer = 'scessor'
+            }
+            return answer;
+        }
+
+        function rock(ans) {
+            if (ans === 'scessor') {
+                return 'win';
+            }
+            else if (ans === 'rock') {
+                return 'draw';
+            }
+            else {
+                return 'loss';
+            }
+        }
+
+        function paper(ans) {
+            if (ans === 'rock') {
+                return 'win';
+            }
+            else if (ans === 'paper') {
+                return 'draw';
+            }
+            else {
+                return 'loss';
+            }
+        }
+
+        function scessor(ans) {
+            if (ans === 'paper') {
+                return 'win';
+            }
+            else if (ans === 'scessor') {
+                return 'draw';
+            }
+            else {
+                return 'loss';
+            }
+        }
+    </script>
+
+</body>
+
+</html>
