@@ -13,7 +13,20 @@ CREATE TABLE IF NOT EXISTS students (
 """)
 
 # Insert data (correct way)
-cursor.execute("INSERT INTO students (name, age) VALUES (?, ?)", ("aditya", 80))
+my_students = [
+    ("abhi", 70),
+    ("madhu", 21),
+    ("me", 98),
+    ("ram", 5000),
+    ("hemsworth", 57),
+]
+
+
+# cursor.execute("INSERT INTO students (name, age) VALUES (?, ?)", ("aditya", 80))
+# VALUES (?, ?) so input taken as data not code'
+
+cursor.executemany("INSERT INTO students (name, age) VALUES (?, ?)", my_students)
+
 
 conn.commit()
 conn.close()
