@@ -28,6 +28,13 @@ my_students = [
 cursor.executemany("INSERT INTO students (name, age) VALUES (?, ?)", my_students)
 
 
+# query the database
+cursor.execute("SELECT*FROM students")
+# cursor.fetchone()
+# cursor.fetchmany(3)
+print(cursor.fetchall())
+
+
 conn.commit()
 conn.close()
 
