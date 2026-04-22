@@ -32,8 +32,13 @@ cursor.executemany("INSERT INTO students (name, age) VALUES (?, ?)", my_students
 cursor.execute("SELECT*FROM students")
 # cursor.fetchone()
 # cursor.fetchmany(3)
-print(cursor.fetchall())
+iteams = cursor.fetchall()
+for iteam in iteams:
+    print(iteam)
 
+
+cursor.execute("SELECT*FROM students WHERE age<50")
+print(cursor.fetchall())
 
 conn.commit()
 conn.close()
