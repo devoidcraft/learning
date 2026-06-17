@@ -1,0 +1,26 @@
+version
+collab
+grt free code
+poly trpo 
+Fork and pr
+
+
+Direct Cheat Sheet: Quick Reference
+The Standard Pipeline (Local to Cloud)
+Bash
+git status                     # Check what state your files are currently in
+git add <filename>             # Move a specific file to the Staging Area
+git add .                      # Move ALL modified files to the Staging Area
+git commit -m "Clear message"  # Freeze the Staging Area into a Local Commit
+git push origin <branch-name>  # Upload your Local Commit to GitHub
+Fixing Local Mistakes (Before Pushing)
+Bash
+git restore <filename>         # Wipe out unsaved changes in a file since last commit
+git reset --soft HEAD~1        # Undo your last commit, but KEEP your written code staged
+git reset --hard HEAD~1        # Completely DESTROY your last commit and delete the code
+Working with Branches
+Bash
+git branch -a                  # List all local and cloud branches
+git checkout -b <new-branch>   # Create a new branch and switch into it immediately
+git checkout <branch-name>     # Switch back to an existing branch
+git merge <feature-branch>     # Pull changes from a feature branch into your current branch
